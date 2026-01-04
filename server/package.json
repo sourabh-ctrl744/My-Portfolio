@@ -1,0 +1,34 @@
+{
+  "name": "lifeguru-portfolio-server",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "db:migrate": "sequelize db:migrate",
+    "db:migrate:undo": "sequelize db:migrate:undo",
+    "db:seed": "sequelize db:seed:all"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "nodemailer": "^7.0.5",
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "sequelize-cli": "^6.6.3"
+  }
+}
