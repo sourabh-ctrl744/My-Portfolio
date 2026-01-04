@@ -29,16 +29,12 @@ jobs:
         working-directory: ./server
         run: npm ci
 
-      - name: Run database migrations
-        working-directory: ./server
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NODE_ENV: production
-        run: npm run db:migrate
-
       - name: Create deployment package
         working-directory: ./server
         run: |
+          # Make migration hook executable
+          chmod +x .platform/hooks/postdeploy/01_migrate.sh 2>/dev/null || true
+          # Create deployment package
           zip -r ../backend-deploy.zip . \
             -x "*.git*" \
             -x "node_modules/.cache/*" \
