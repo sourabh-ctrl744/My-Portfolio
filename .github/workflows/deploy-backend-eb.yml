@@ -13,6 +13,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      RUN_MIGRATIONS: ${{ secrets.RUN_MIGRATIONS }}
 
     steps:
       - name: Checkout code
@@ -30,7 +32,7 @@ jobs:
         run: npm ci
 
       - name: Run database migrations
-        if: ${{ secrets.RUN_MIGRATIONS == 'true' }}
+        if: env.RUN_MIGRATIONS == 'true'
         working-directory: ./server
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
