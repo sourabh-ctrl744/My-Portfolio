@@ -39,7 +39,10 @@ async function start() {
     // In dev you can ensure tables exist (comment out in prod; use migrations instead)
     // await sequelize.sync();
 
-    app.listen(PORT, () => console.log(`✅ API running http://localhost:${PORT}`));
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`✅ API running on port ${PORT}`);
+      console.log(`✅ Listening on 0.0.0.0:${PORT} (accessible from nginx)`);
+    });
   } catch (e) {
     console.error('❌ DB connection failed:', e.message);
     process.exit(1);
