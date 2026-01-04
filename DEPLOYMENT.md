@@ -12,7 +12,7 @@ This guide will walk you through deploying your MERN portfolio application to AW
 ## 🏗️ Architecture Overview
 
 - **Frontend**: React app → S3 bucket → CloudFront (CDN)
-- **Backend**: Node.js/Express → EC2 instance or Elastic Beanstalk
+- **Backend**: Node.js/Express → Elastic Beanstalk
 - **Database**: PostgreSQL (RDS or external)
 
 ## 🚀 Step-by-Step Setup
@@ -61,88 +61,7 @@ aws s3api put-bucket-policy \
 6. Create Distribution
 7. Note the Distribution ID
 
-#### C. Setup Backend - Option 1: EC2 Instance
-
-1. **Launch EC2 Instance**:
-
-   - AMI: Ubuntu 22.04 LTS
-   - Instance Type: t2.micro (free tier) or t3.small
-   - Security Group: Allow SSH (22), HTTP (80), HTTPS (443)
-   - Key Pair: Create and download
-
-2. **Connect and Setup**:
-
-   ```bash
-   ssh -i your-key.pem ubuntu@your-ec2-ip
-
-   # Install Node.js
-   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-   sudo apt-get install -y nodejs
-
-   # Install PM2
-   sudo npm install -g pm2
-
-   # Install Nginx
-   sudo apt-get update
-   sudo apt-get install -y nginx
-
-   # Setup Nginx reverse proxy
-   sudo nano /etc/nginx/sites-available/default
-   ```
-
-3. **Nginx Configuration**:
-
-   ```nginx
-   server {
-       listen 80;
-       server_name your-domain.com;
-
-       location / {
-           proxy_pass http://localhost:5002;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       }
-   }
-   ```
-
-   ```bash
-   sudo nginx -t
-   sudo systemctl restart nginx
-   ```
-
-4. **Create .env file on EC2**:
-
-   ```bash
-   mkdir -p ~/portfolio-backend
-   cd ~/portfolio-backend
-   nano .env
-   ```
-
-   Add your environment variables:
-
-   ```env
-   PORT=5002
-   CLIENT_ORIGIN=https://your-frontend-domain.com
-   DATABASE_URL=your-database-url
-   # OR use individual DB vars:
-   PG_HOST=your-db-host
-   PG_PORT=5432
-   PG_USER=your-db-user
-   PG_PASS=your-db-password
-   PG_DB=your-db-name
-   PG_SSL=true
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
-   ```
-
-#### D. Setup Backend - Option 2: Elastic Beanstalk
+#### C. Setup Backend - Elastic Beanstalk
 
 1. Go to AWS Console → Elastic Beanstalk
 2. Create Application
@@ -174,15 +93,6 @@ Add these secrets:
 | ---------------------------- | ------------------------------------- | ---------------------------- |
 | `VITE_API_URL`               | Backend API URL                       | `https://api.yourdomain.com` |
 | `CLOUDFRONT_DISTRIBUTION_ID` | CloudFront distribution ID (optional) | `E1234567890ABC`             |
-
-#### Backend Secrets (EC2):
-
-| Secret Name    | Description               | Example                                   |
-| -------------- | ------------------------- | ----------------------------------------- |
-| `EC2_HOST`     | EC2 instance IP or domain | `ec2-12-34-56-78.compute-1.amazonaws.com` |
-| `EC2_USERNAME` | SSH username              | `ubuntu`                                  |
-| `EC2_SSH_KEY`  | Private SSH key content   | `-----BEGIN RSA PRIVATE KEY-----...`      |
-| `EC2_PORT`     | SSH port (optional)       | `22`                                      |
 
 #### Backend Secrets (Elastic Beanstalk):
 
@@ -289,35 +199,25 @@ Go to repository → Actions → Select workflow → Run workflow
 
 1. **For CloudFront**: Use AWS Certificate Manager (ACM)
 
-   - Request certificate in `us-east-1` region
+   - Request certificate in `us-east-1` region (required for CloudFront)
    - Add to CloudFront distribution
 
-2. **For EC2**: Use Let's Encrypt with Certbot
-   ```bash
-   sudo apt-get install certbot python3-certbot-nginx
-   sudo certbot --nginx -d your-domain.com
-   ```
+2. **For Elastic Beanstalk**: Use AWS Certificate Manager (ACM)
+   - Request certificate in your region
+   - Configure HTTPS listener in Elastic Beanstalk environment
 
 #### Database Setup
 
 1. Create PostgreSQL database (RDS or external)
-2. Run migrations manually first time:
-   ```bash
-   ssh into EC2
-   cd ~/portfolio-backend/current
-   npm run db:migrate
-   ```
+2. Run migrations:
+   - Option 1: Set `RUN_MIGRATIONS=true` in GitHub secrets (automatic)
+   - Option 2: Run manually via EB SSH or locally with database credentials
 
 #### Monitoring
 
-- **PM2 Monitoring** (EC2):
-
-  ```bash
-  pm2 monit
-  pm2 logs portfolio-backend
-  ```
-
-- **CloudWatch** (EB): Automatic logging enabled
+- **CloudWatch Logs** (Elastic Beanstalk): Automatic logging enabled
+  - View logs in AWS Console → Elastic Beanstalk → Your Environment → Logs
+  - Or use AWS CLI: `aws elasticbeanstalk request-environment-info --environment-name <env-name>`
 
 ## 🔧 Troubleshooting
 
@@ -329,15 +229,15 @@ Go to repository → Actions → Select workflow → Run workflow
 
 ### Backend Issues
 
-- **Connection refused**: Check security groups, ensure port 5002 is accessible
+- **Connection refused**: Check Elastic Beanstalk environment health and security groups
 - **Database connection failed**: Verify database credentials and security groups
-- **PM2 not running**: SSH into EC2 and check `pm2 status`
+- **Deployment failed**: Check Elastic Beanstalk logs in AWS Console
 
 ### GitHub Actions Issues
 
 - **AWS credentials error**: Verify IAM user has correct permissions
-- **SSH connection failed**: Check EC2_SSH_KEY format (must include BEGIN/END lines)
-- **Deployment timeout**: Increase timeout in workflow file
+- **Elastic Beanstalk deployment failed**: Check EB application and environment names match your secrets
+- **Deployment timeout**: Increase `wait_for_environment_recovery` in workflow file
 
 ## 📝 Environment Variables Reference
 
@@ -379,7 +279,7 @@ Set `VITE_API_URL` in GitHub secrets for production builds.
 
 - **S3**: ~$0.023/GB storage + $0.005/1000 requests
 - **CloudFront**: ~$0.085/GB data transfer
-- **EC2 t2.micro**: Free tier eligible (750 hours/month)
+- **Elastic Beanstalk**: Free tier eligible (750 hours/month for t2/t3 instances)
 - **RDS**: ~$15/month for db.t2.micro (free tier eligible)
 - **Total**: ~$0-20/month (depending on traffic)
 
@@ -387,5 +287,5 @@ Set `VITE_API_URL` in GitHub secrets for production builds.
 
 - [AWS S3 Documentation](https://docs.aws.amazon.com/s3/)
 - [AWS CloudFront Documentation](https://docs.aws.amazon.com/cloudfront/)
-- [AWS EC2 Documentation](https://docs.aws.amazon.com/ec2/)
+- [AWS Elastic Beanstalk Documentation](https://docs.aws.amazon.com/elasticbeanstalk/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)

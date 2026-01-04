@@ -6,14 +6,14 @@ on:
       - main
       - master
     paths:
-      - 'server/**'
-      - '.github/workflows/deploy-backend-eb.yml'
+      - "server/**"
+      - ".github/workflows/deploy-backend-eb.yml"
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,8 +21,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
           cache-dependency-path: server/package-lock.json
 
       - name: Install dependencies
@@ -55,7 +55,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v22
@@ -65,7 +65,7 @@ jobs:
           application_name: ${{ secrets.EB_APPLICATION_NAME }}
           environment_name: ${{ secrets.EB_ENVIRONMENT_NAME }}
           version_label: ${{ github.sha }}
-          region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          region: ${{ secrets.AWS_REGION }}
           deployment_package: backend-deploy.zip
           wait_for_environment_recovery: 300
 
@@ -75,4 +75,3 @@ jobs:
 
       - name: Deployment complete
         run: echo "✅ Backend deployed successfully to Elastic Beanstalk"
-

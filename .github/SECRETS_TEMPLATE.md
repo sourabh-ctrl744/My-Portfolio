@@ -18,19 +18,8 @@ VITE_API_URL=https://api.yourdomain.com
 CLOUDFRONT_DISTRIBUTION_ID=E1234567890ABC
 ```
 
-## Backend Secrets (Choose EC2 OR Elastic Beanstalk)
+## Backend Secrets (Elastic Beanstalk)
 
-### For EC2 Deployment:
-```
-EC2_HOST=ec2-12-34-56-78.compute-1.amazonaws.com
-EC2_USERNAME=ubuntu
-EC2_SSH_KEY=-----BEGIN RSA PRIVATE KEY-----
-...your private key content...
------END RSA PRIVATE KEY-----
-EC2_PORT=22
-```
-
-### For Elastic Beanstalk Deployment:
 ```
 EB_APPLICATION_NAME=portfolio-backend
 EB_ENVIRONMENT_NAME=portfolio-backend-prod
@@ -63,5 +52,4 @@ PG_SSL=true
 - Never commit actual secrets to the repository
 - Use different secrets for different environments (staging/production)
 - Rotate secrets regularly for security
-- The `EC2_SSH_KEY` must include the full private key including `-----BEGIN` and `-----END` lines
-
+- Ensure `AWS_REGION` matches the region where your S3 bucket and Elastic Beanstalk environment are located

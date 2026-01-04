@@ -7,7 +7,7 @@ A full-stack portfolio website built with React (Vite), Node.js, Express, and Po
 - **Frontend**: React 18, Vite, Framer Motion, React Hook Form
 - **Backend**: Node.js, Express, Sequelize ORM
 - **Database**: PostgreSQL
-- **Deployment**: AWS (S3 + CloudFront for frontend, Elastic Beanstalk/EC2 for backend)
+- **Deployment**: AWS (S3 + CloudFront for frontend, Elastic Beanstalk for backend)
 
 ## 📁 Project Structure
 
@@ -59,19 +59,18 @@ This project includes GitHub Actions workflows for automated deployment to AWS.
 ### Quick Start
 
 1. **Frontend**: Deploys to S3 + CloudFront (CDN)
-2. **Backend**: Deploys to EC2 or Elastic Beanstalk
+2. **Backend**: Deploys to Elastic Beanstalk
 
 ### Deployment Workflows
 
 - **Frontend**: `.github/workflows/deploy-frontend.yml` - Builds React app and deploys to S3
-- **Backend (EC2)**: `.github/workflows/deploy-backend.yml` - Deploys to EC2 instance with PM2
-- **Backend (EB)**: `.github/workflows/deploy-backend-eb.yml` - Deploys to Elastic Beanstalk
+- **Backend**: `.github/workflows/deploy-backend-eb.yml` - Deploys to Elastic Beanstalk
 
 ### 📖 Complete Deployment Guide
 
 For detailed step-by-step instructions, see **[DEPLOYMENT.md](./DEPLOYMENT.md)** which covers:
 
-- AWS infrastructure setup (S3, CloudFront, EC2, RDS)
+- AWS infrastructure setup (S3, CloudFront, Elastic Beanstalk, RDS)
 - GitHub Secrets configuration
 - IAM user setup and permissions
 - SSL/HTTPS configuration
@@ -83,7 +82,7 @@ For detailed step-by-step instructions, see **[DEPLOYMENT.md](./DEPLOYMENT.md)**
 
 1. ✅ Create S3 bucket for frontend
 2. ✅ Create CloudFront distribution (optional)
-3. ✅ Launch EC2 instance or Elastic Beanstalk environment
+3. ✅ Create Elastic Beanstalk environment
 4. ✅ Configure GitHub Secrets (see DEPLOYMENT.md)
 5. ✅ Push to `main` branch to trigger deployment
 
