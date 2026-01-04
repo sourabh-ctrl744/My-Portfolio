@@ -13,8 +13,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      RUN_MIGRATIONS: ${{ secrets.RUN_MIGRATIONS }}
 
     steps:
       - name: Checkout code
@@ -32,16 +30,10 @@ jobs:
         run: npm ci
 
       - name: Run database migrations
-        if: env.RUN_MIGRATIONS == 'true'
         working-directory: ./server
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          PG_HOST: ${{ secrets.PG_HOST }}
-          PG_PORT: ${{ secrets.PG_PORT }}
-          PG_USER: ${{ secrets.PG_USER }}
-          PG_PASS: ${{ secrets.PG_PASS }}
-          PG_DB: ${{ secrets.PG_DB }}
-          PG_SSL: ${{ secrets.PG_SSL }}
+          NODE_ENV: production
         run: npm run db:migrate
 
       - name: Create deployment package
