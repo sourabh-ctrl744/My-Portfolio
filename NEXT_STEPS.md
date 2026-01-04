@@ -20,6 +20,7 @@ Since you've already created your S3 bucket (`portfolio-frontend-sourabh`) and a
 Your S3 bucket needs to be configured for static website hosting:
 
 **Option A: Via AWS Console**
+
 1. Go to S3 → Select `portfolio-frontend-sourabh` bucket
 2. Go to **Properties** tab
 3. Scroll to **Static website hosting**
@@ -30,6 +31,7 @@ Your S3 bucket needs to be configured for static website hosting:
 8. Save changes
 
 **Option B: Via AWS CLI**
+
 ```bash
 aws s3 website s3://portfolio-frontend-sourabh \
   --index-document index.html \
@@ -71,7 +73,7 @@ The bucket needs public read access for static files:
 4. Uncheck **Block all public access** (or uncheck only "Block public access to buckets and objects granted through new public bucket or access point policies")
 5. Confirm and save
 
-### 4. Verify Elastic Beanstalk Environment
+### 4. Verify Elastic Beanstalk Environ
 
 Make sure your Elastic Beanstalk environment is set up:
 
@@ -93,6 +95,7 @@ Check if you need to add:
 ### 6. Test Deployment
 
 1. Make a small change to trigger deployment:
+
    ```bash
    # Make a small change in client or server
    git add .
@@ -101,6 +104,7 @@ Check if you need to add:
    ```
 
 2. Monitor deployment:
+
    - Go to GitHub → Actions tab
    - Watch the workflow runs
    - Check for any errors
@@ -112,16 +116,19 @@ Check if you need to add:
 ## 🚨 Common Issues
 
 ### S3 Bucket Not Accessible
+
 - Ensure bucket policy allows public read
 - Check Block Public Access settings
 - Verify bucket is in the correct region
 
 ### Backend Deployment Fails
+
 - Verify `EB_APPLICATION_NAME` and `EB_ENVIRONMENT_NAME` match exactly
 - Check IAM user has Elastic Beanstalk permissions
 - Verify `AWS_REGION` matches your EB environment region
 
 ### Frontend Can't Connect to Backend
+
 - Set `VITE_API_URL` secret to your EB environment URL
 - Check CORS settings in backend (should allow your frontend domain)
 - Verify backend environment variables are set correctly
@@ -146,4 +153,3 @@ Once all steps above are complete, push to your `main` branch and GitHub Actions
 ```bash
 git push origin main
 ```
-
