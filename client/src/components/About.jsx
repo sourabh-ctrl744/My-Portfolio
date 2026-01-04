@@ -9,7 +9,7 @@ export default function About() {
         <p className="about-description">
           Hello! I'm {profile.name}, a passionate Software Development Engineer at LifeGuru. 
           I enjoy creating innovative solutions for the web and building scalable applications 
-          that make a real impact. My expertise lies in backend development with a focus on 
+          that make a real impact. My expertise lies in backend development with focus on 
           modern technologies and best practices.
         </p>
       </div>
