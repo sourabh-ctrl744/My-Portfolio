@@ -167,7 +167,7 @@ cat ~/.ssh/your-ec2-key.pem
 
 ### 5. Enable GitHub Actions
 
-1. Go to repository → Settings → Actions → General
+1. Go to repository → Settings → Actions → Gener
 2. Enable "Allow all actions and reusable workflows"
 3. Save
 
