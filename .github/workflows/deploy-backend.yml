@@ -1,0 +1,109 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'server/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deploy
+          cp -r server/* deploy/
+          cd deploy
+          npm ci --production
+          # Remove dev dependencies from node_modules if needed
+          rm -rf node_modules/.cache
+          cd ..
+          tar -czf backend-deploy.tar.gz -C deploy .
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy files to EC2
+        run: |
+          scp -i ~/.ssh/deploy_key \
+            -P ${{ secrets.EC2_PORT || 22 }} \
+            backend-deploy.tar.gz \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/
+
+      - name: Deploy on EC2
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -p ${{ secrets.EC2_PORT || 22 }} \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'ENDSSH'
+            set -e
+            
+            # Create app directory if it doesn't exist
+            mkdir -p ~/portfolio-backend
+            cd ~/portfolio-backend
+            
+            # Backup current deployment
+            if [ -d "current" ]; then
+              mv current backup-$(date +%Y%m%d-%H%M%S)
+            fi
+            
+            # Extract new deployment
+            mkdir -p current
+            tar -xzf /tmp/backend-deploy.tar.gz -C current/
+            rm /tmp/backend-deploy.tar.gz
+            
+            # Create .env file if it doesn't exist (you should create this manually first)
+            if [ ! -f current/.env ]; then
+              echo "⚠️  Warning: .env file not found. Please create it manually."
+            fi
+            
+            # Install/update PM2 if not present
+            if ! command -v pm2 &> /dev/null; then
+              echo "Installing PM2..."
+              sudo npm install -g pm2
+            fi
+            
+            # Run database migrations if enabled
+            if [ "${{ secrets.RUN_MIGRATIONS }}" = "true" ]; then
+              cd current
+              npm run db:migrate || echo "Migration failed, but continuing..."
+              cd ..
+            fi
+            
+            # Restart application with PM2
+            cd current
+            pm2 delete portfolio-backend || true
+            pm2 start src/index.js --name portfolio-backend --update-env
+            pm2 save
+            
+            echo "✅ Backend deployed successfully"
+          ENDSSH
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f backend-deploy.tar.gz
+          rm -rf deploy
+
+      - name: Deployment complete
+        run: echo "✅ Backend deployment workflow completed"
+
